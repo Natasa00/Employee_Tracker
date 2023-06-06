@@ -4,7 +4,8 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "init:db": "mysql -u testuser -p < ./db/schema.sql && mysql -u testuser -p < ./db/seeds.sql"
   },
   "keywords": [],
   "author": "",
