@@ -17,6 +17,7 @@ const startQuestions = [
       "Add a role",
       "Add an employee",
       "Update an employee role",
+      "Quit",
     ],
   },
 ];
@@ -55,7 +56,7 @@ function printEmployees(employees) {
   console.log(
     `id\t${"first name".padEnd(15, " ")}\t${"last name".padEnd(15, " ")}\t` +
       `${"job title".padEnd(20, " ")}\t` +
-      `${"department".padEnd(15," ")}\tsalary\tmanager`
+      `${"department".padEnd(15, " ")}\tsalary\tmanager`
   );
   console.log(
     `-----------------------------------------------------------------------------------------------------`
@@ -73,29 +74,33 @@ function printEmployees(employees) {
   });
 }
 
-function performAction(connection, action) {
+async function performAction(connection, action) {
   if (action === "View all departments") {
-    connection.query(queries.viewDepartments).then((results) => {
+    await connection.query(queries.viewDepartments).then((results) => {
       printDepartments(results[0]);
     });
   } else if (action === "View all roles") {
-    connection.query(queries.viewRoles).then((results) => {
+    await connection.query(queries.viewRoles).then((results) => {
       printRoles(results[0]);
     });
   } else if (action === "View all employees") {
-    connection.query(queries.viewEmployees).then((results) => {
+    await connection.query(queries.viewEmployees).then((results) => {
       printEmployees(results[0]);
     });
   } else if (action === "Add a department") {
-    inquirer.prompt(addDepartmentQuestions).then((answers) => {
-      connection.query(queries.insertDepartment("NULL", answers.departmentName))
+    await inquirer.prompt(addDepartmentQuestions).then((answers) =>
+      connection
+        .query(queries.insertDepartment("NULL", answers.departmentName))
         .then(() => {
           console.log(`Department ${answers.departmentName} has been added.`);
-        });
-    })
+        })
+    );
   } else if (action === "Add a role") {
-    connection.query(queries.viewDepartments).then((departmentRes) => {
-      const departments = departmentRes[0].map((dep) => ({ name: dep.name, value: dep.id }));
+    await connection.query(queries.viewDepartments).then((departmentRes) => {
+      const departments = departmentRes[0].map((dep) => ({
+        name: dep.name,
+        value: dep.id,
+      }));
       const addRoleQuestions = [
         {
           type: "input",
@@ -112,22 +117,31 @@ function performAction(connection, action) {
           name: "department",
           message: "Choose a department:",
           choices: departments,
-        }
-      ]
-      inquirer.prompt(addRoleQuestions).then((answers) => {
-        connection.query(queries.insertRole(answers.name, answers.salary, answers.department))
+        },
+      ];
+      return inquirer.prompt(addRoleQuestions).then((answers) =>
+        connection
+          .query(
+            queries.insertRole(answers.name, answers.salary, answers.department)
+          )
           .then(() => {
             console.log(`Role ${answers.name} has been added.`);
           })
-      })
-    })
+      );
+    });
   } else if (action === "Add an employee") {
-    connection.query(queries.viewRoles).then((roleRes) => {
+    await connection.query(queries.viewRoles).then((roleRes) =>
       connection.query(queries.viewEmployees).then((employeeRes) => {
-        const roleChoices = roleRes[0].map(role => ({ name: role.title, value: role.id }));
+        const roleChoices = roleRes[0].map((role) => ({
+          name: role.title,
+          value: role.id,
+        }));
         const managerChoices = [
           { name: "None", value: "NULL" },
-          ...employeeRes[0].map(emp => ({ name: `${emp.first_name} ${emp.last_name}`, value: emp.id }))
+          ...employeeRes[0].map((emp) => ({
+            name: `${emp.first_name} ${emp.last_name}`,
+            value: emp.id,
+          })),
         ];
         const addEmployeeQuestions = [
           {
@@ -152,26 +166,37 @@ function performAction(connection, action) {
             message: "What is the employee's manager?",
             choices: managerChoices,
           },
-        ]
+        ];
 
-        inquirer.prompt(addEmployeeQuestions).then(answers => {
-          connection.query(queries.insertEmployee(
-            answers.firstName,
-            answers.lastName,
-            answers.role,
-            answers.manager
-          ))
+        return inquirer.prompt(addEmployeeQuestions).then((answers) =>
+          connection
+            .query(
+              queries.insertEmployee(
+                answers.firstName,
+                answers.lastName,
+                answers.role,
+                answers.manager
+              )
+            )
             .then(() => {
-              console.log(`Employee ${answers.firstName} ${answers.lastName} has been added.`);
+              console.log(
+                `Employee ${answers.firstName} ${answers.lastName} has been added.`
+              );
             })
-        })
+        );
       })
-    })
+    );
   } else if (action === "Update an employee role") {
-    connection.query(queries.viewRoles).then((roleRes) => {
-      connection.query(queries.viewEmployees).then((employeeRes) => {
-        const employeeChoices = employeeRes[0].map(emp => ({ name: `${emp.first_name} ${emp.last_name}`, value: emp.id }));
-        const roleChoices = roleRes[0].map(role => ({ name: role.title, value: role.id }));
+    await connection.query(queries.viewRoles).then((roleRes) => {
+      return connection.query(queries.viewEmployees).then((employeeRes) => {
+        const employeeChoices = employeeRes[0].map((emp) => ({
+          name: `${emp.first_name} ${emp.last_name}`,
+          value: emp.id,
+        }));
+        const roleChoices = roleRes[0].map((role) => ({
+          name: role.title,
+          value: role.id,
+        }));
         const updateEmpRoleQuestions = [
           {
             type: "list",
@@ -184,35 +209,40 @@ function performAction(connection, action) {
             name: "role",
             message: "Choose a new role for this employee",
             choices: roleChoices,
-          }
-        ]
+          },
+        ];
 
-        inquirer.prompt(updateEmpRoleQuestions).then(answers => {
-          connection.query(queries.updateEmployeeRole(answers.employee, answers.role))
+        return inquirer.prompt(updateEmpRoleQuestions).then((answers) => {
+          return connection
+            .query(queries.updateEmployeeRole(answers.employee, answers.role))
             .then(() => {
               console.log(`Employee has been updated.`);
-            })
-        })
-      })
-    })
+            });
+        });
+      });
+    });
   }
 }
 
 // Create a function to initialize app
-function init() {
+async function init() {
   // create the connection to database
-  mysql
-    .createConnection({
-      host: "localhost",
-      user: "testuser",
-      password: "FakeInsecurePassword",
-      database: "employee_db",
-    })
-    .then((connection) => {
-      inquirer.prompt(startQuestions).then((answers) => {
-        performAction(connection, answers.action);
-      });
+  const connection = await mysql.createConnection({
+    host: "localhost",
+    user: "testuser",
+    password: "FakeInsecurePassword",
+    database: "employee_db",
+  });
+
+  let currentAction = "";
+  while (currentAction !== "Quit") {
+    await inquirer.prompt(startQuestions).then((answers) => {
+      currentAction = answers.action;
+      return performAction(connection, answers.action);
     });
+    console.log("\n");
+  }
+  process.exit();
 }
 
 // Function call to initialize app
