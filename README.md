@@ -4,4 +4,4 @@ A command-line application from scratch to manage a company's employee database,
 
 ## Walkthrough video
 
-[View video here]().
+[View video here](https://drive.google.com/file/d/17NN-NBzzghqlgKttqXbUiAycBZauPTuh/view).

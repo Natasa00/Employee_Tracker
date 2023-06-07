@@ -22,14 +22,6 @@ const startQuestions = [
   },
 ];
 
-const addDepartmentQuestions = [
-  {
-    type: "input",
-    name: "departmentName",
-    message: "Enter the department name:",
-  },
-];
-
 function printDepartments(departments) {
   console.log(`id\tname`);
   console.log(`----------------------------`);
@@ -88,9 +80,15 @@ async function performAction(connection, action) {
       printEmployees(results[0]);
     });
   } else if (action === "Add a department") {
-    await inquirer.prompt(addDepartmentQuestions).then((answers) =>
+    await inquirer.prompt([
+      {
+        type: "input",
+        name: "departmentName",
+        message: "Enter the department name:",
+      },
+    ]).then((answers) =>
       connection
-        .query(queries.insertDepartment("NULL", answers.departmentName))
+        .query(queries.insertDepartment(answers.departmentName))
         .then(() => {
           console.log(`Department ${answers.departmentName} has been added.`);
         })
