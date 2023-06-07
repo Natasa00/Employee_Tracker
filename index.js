@@ -24,8 +24,8 @@ const startQuestions = [
 const addDepartmentQuestions = [
   {
     type: "input",
-    name: "deppartmentName",
-    message: "Enter a department name:",
+    name: "departmentName",
+    message: "Enter the department name:",
   },
 ];
 
@@ -86,6 +86,41 @@ function performAction(connection, action) {
     connection.query(queries.viewEmployees).then((results) => {
       printEmployees(results[0]);
     });
+  } else if (action === "Add a department") {
+    inquirer.prompt(addDepartmentQuestions).then((answers) => {
+      connection.query(queries.insertDepartment("NULL", answers.departmentName))
+        .then(() => {
+          console.log(`Department ${answers.departmentName} has been added.`);
+        });
+    })
+  } else if (action === "Add a role") {
+    connection.query(queries.viewDepartments).then((departmentRes) => {
+      const departments = departmentRes[0].map((dep) => ({ name: dep.name, value: dep.id }));
+      const addRoleQuestions = [
+        {
+          type: "input",
+          name: "name",
+          message: "Enter the role name:",
+        },
+        {
+          type: "number",
+          name: "salary",
+          message: "Enter the salary:",
+        },
+        {
+          type: "list",
+          name: "department",
+          message: "Choose a department:",
+          choices: departments,
+        }
+      ]
+      inquirer.prompt(addRoleQuestions).then((answers) => {
+        connection.query(queries.insertRole(answers.name, answers.salary, answers.department))
+          .then(() => {
+            console.log(`Role ${answers.name} has been added.`);
+          })
+      })
+    })
   }
 }
 

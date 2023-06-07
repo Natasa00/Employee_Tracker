@@ -11,6 +11,10 @@ const queries = {
     JOIN role ON role.id = emp1.role_id
     LEFT JOIN employee emp2 ON emp1.manager_id = emp2.id
     JOIN department ON role.department_id = department.id;`,
+  insertDepartment: (departmentName) =>
+    `INSERT INTO department VALUES (NULL, '${departmentName}');`,
+  insertRole: (title, salary, departmentId) =>
+    `INSERT INTO role VALUES (NULL, '${title}', ${salary}, ${departmentId});`,
 };
 
 module.exports = queries;
