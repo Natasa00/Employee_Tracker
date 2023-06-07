@@ -121,6 +121,47 @@ function performAction(connection, action) {
           })
       })
     })
+  } else if (action === "Add an employee") {
+    connection.query(queries.viewRoles).then((roleRes) => {
+      connection.query(queries.viewEmployees).then((employeeRes) => {
+        const roleChoices = roleRes[0].map(role => ({ name: role.title, value: role.id }));
+        const managerChoices = [
+          { name: "None", value: "NULL" },
+          ...employeeRes[0].map(emp => ({ name: `${emp.first_name} ${emp.last_name}`, value: emp.id }))
+        ];
+        const addEmployeeQuestions = [
+          {
+            type: "input",
+            name: "firstName",
+            message: "What is the employee's first name?",
+          },
+          {
+            type: "input",
+            name: "lastName",
+            message: "What is the employee's last name?",
+          },
+          {
+            type: "list",
+            name: "role",
+            message: "What is the employee's role?",
+            choices: roleChoices,
+          },
+          {
+            type: "list",
+            name: "manager",
+            message: "What is the employee's manager?",
+            choices: managerChoices,
+          },
+        ]
+
+        inquirer.prompt(addEmployeeQuestions).then(answers => {
+          connection.query(queries.insertEmployee(answers.firstName, answers.lastName, answers.role, answers.manager))
+            .then(() => {
+              console.log(`Employee ${answers.firstName} ${answers.lastName} has been added.`);
+            })
+        })
+      })
+    })
   }
 }
 
