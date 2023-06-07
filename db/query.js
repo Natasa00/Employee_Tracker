@@ -15,8 +15,12 @@ const queries = {
     `INSERT INTO department VALUES (NULL, '${departmentName}');`,
   insertRole: (title, salary, departmentId) =>
     `INSERT INTO role VALUES (NULL, '${title}', ${salary}, ${departmentId});`,
-  insertEmployee: (firstName, lastName, role, manager) =>
-    `INSERT INTO employee VALUES (NULL, '${firstName}', '${lastName}', ${role}, ${manager});`,
+  insertEmployee: (firstName, lastName, roleId, managerId) =>
+    `INSERT INTO employee VALUES (NULL, '${firstName}', '${lastName}', ${roleId}, ${managerId});`,
+  updateEmployeeRole: (employeeId, roleId) => `
+    UPDATE employee
+    SET role_id = ${roleId}
+    WHERE id = ${employeeId};`,
 };
 
 module.exports = queries;

@@ -155,9 +155,42 @@ function performAction(connection, action) {
         ]
 
         inquirer.prompt(addEmployeeQuestions).then(answers => {
-          connection.query(queries.insertEmployee(answers.firstName, answers.lastName, answers.role, answers.manager))
+          connection.query(queries.insertEmployee(
+            answers.firstName,
+            answers.lastName,
+            answers.role,
+            answers.manager
+          ))
             .then(() => {
               console.log(`Employee ${answers.firstName} ${answers.lastName} has been added.`);
+            })
+        })
+      })
+    })
+  } else if (action === "Update an employee role") {
+    connection.query(queries.viewRoles).then((roleRes) => {
+      connection.query(queries.viewEmployees).then((employeeRes) => {
+        const employeeChoices = employeeRes[0].map(emp => ({ name: `${emp.first_name} ${emp.last_name}`, value: emp.id }));
+        const roleChoices = roleRes[0].map(role => ({ name: role.title, value: role.id }));
+        const updateEmpRoleQuestions = [
+          {
+            type: "list",
+            name: "employee",
+            message: "Choose an employee to update",
+            choices: employeeChoices,
+          },
+          {
+            type: "list",
+            name: "role",
+            message: "Choose a new role for this employee",
+            choices: roleChoices,
+          }
+        ]
+
+        inquirer.prompt(updateEmpRoleQuestions).then(answers => {
+          connection.query(queries.updateEmployeeRole(answers.employee, answers.role))
+            .then(() => {
+              console.log(`Employee has been updated.`);
             })
         })
       })
